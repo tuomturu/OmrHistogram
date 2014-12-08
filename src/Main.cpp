@@ -6,10 +6,23 @@
  */
 
 #include <iostream>
-#include <cstdlib>
 
-int main() {
-	std::cout << "Moi maailma" << std::endl;
+#include <QCoreApplication>
+#include <QCommandLineParser>
+#include <QDebug>
 
-	return EXIT_SUCCESS;
+int main(int argc, char * argv[])
+{
+	QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationName("okr-histogram");
+	QCoreApplication::setApplicationVersion("0.1");
+
+	QCommandLineParser parser;
+	parser.setApplicationDescription("Test helper");
+	parser.addHelpOption();
+	parser.addVersionOption();
+
+	qDebug() << "Moi maailma";
+
+	return app.exec();
 }
