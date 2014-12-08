@@ -1,0 +1,4 @@
+.directory
+
+build/debug/*
+build/release/*
