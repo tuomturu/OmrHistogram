@@ -6,23 +6,30 @@
  */
 
 #include <iostream>
+#include <stdexcept>
 
 #include <QCoreApplication>
-#include <QCommandLineParser>
 #include <QDebug>
+#include <QtGlobal>
+
+#include "CommandLineParser.hpp"
 
 int main(int argc, char * argv[])
 {
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName("okr-histogram");
 	QCoreApplication::setApplicationVersion("0.1");
+	CommandLineParser parser;
 
-	QCommandLineParser parser;
-	parser.setApplicationDescription("Test helper");
-	parser.addHelpOption();
-	parser.addVersionOption();
+	try
+	{
+		parser.process(app);
+	} catch (std::runtime_error & e)
+	{
+		qCritical(e.what());
+		return EXIT_FAILURE;
+	}
 
-	qDebug() << "Moi maailma";
-
-	return app.exec();
+	//return app.exec();
+	return EXIT_SUCCESS;
 }

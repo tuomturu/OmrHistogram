@@ -7,6 +7,7 @@ project(${PROJECT_NAME})
 ######## COMPILER SETTINGS ##########
 #####################################
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Error messages single line for Eclipse
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -55,21 +56,19 @@ set(SOURCE_DIR
 	
 set(SOURCES
 	${SOURCE_DIR}/Main.cpp
+	${SOURCE_DIR}/CommandLineParser.cpp
 	)
-
-#####################################
-############## QT STUFF #############
-#####################################
-
-set(CMAKE_AUTOMOC ON)
 
 #####################################
 ############# INCLUDES ##############
 #####################################
 
+set(INCLUDE_DIR
+	${CMAKE_SOURCE_DIR}/../inc
+	)
 
 set(INCLUDE_DIRS
-	${CMAKE_SOURCE_DIR}/../inc
+    ${INCLUDE_DIR}
 	)
 
 include_directories(
@@ -85,6 +84,13 @@ include_directories(
 set(LINK_LIBS
     ${EXTERNAL_LIBS}
     )
+
+#####################################
+############## QT STUFF #############
+#####################################
+
+set(CMAKE_AUTOMOC ON)
+QT5_WRAP_CPP(MOC_SOURCES ${INCLUDE_DIR}/CommandLineParser.hpp)
 
 #####################################
 ############## COMPILE ##############
