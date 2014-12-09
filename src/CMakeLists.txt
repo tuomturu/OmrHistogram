@@ -7,9 +7,10 @@ project(${PROJECT_NAME})
 ######## COMPILER SETTINGS ##########
 #####################################
 
+# Mocced stuff is in build directory
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Error messages single line for Eclipse
+# Error messages in single line for Eclipse
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
 endif(CMAKE_COMPILER_IS_GNUCC)
@@ -28,7 +29,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -O0 -g")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/../cmake/modules/")
 
-# find packets
+# find packages
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
@@ -57,6 +58,7 @@ set(SOURCE_DIR
 set(SOURCES
 	${SOURCE_DIR}/Main.cpp
 	${SOURCE_DIR}/CommandLineParser.cpp
+	${SOURCE_DIR}/Histogram.cpp
 	)
 
 #####################################
@@ -89,14 +91,26 @@ set(LINK_LIBS
 ############## QT STUFF #############
 #####################################
 
-set(CMAKE_AUTOMOC ON)
-QT5_WRAP_CPP(MOC_SOURCES ${INCLUDE_DIR}/CommandLineParser.hpp)
+set(UI_DIR
+    ${CMAKE_SOURCE_DIR}/../ui
+	)
+
+#set(CMAKE_AUTOMOC ON)
+
+QT5_WRAP_UI(UI_HEADERS
+    ${UI_DIR}/Histogram.ui
+    )
+    
+QT5_WRAP_CPP(MOC_SOURCES
+    ${INCLUDE_DIR}/CommandLineParser.hpp
+    ${INCLUDE_DIR}/Histogram.hpp
+    )
 
 #####################################
 ############## COMPILE ##############
 #####################################
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${MOC_SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${MOC_SOURCES} ${UI_HEADERS})
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
 
 qt5_use_modules(${PROJECT_NAME} Widgets)

@@ -32,12 +32,13 @@ void CommandLineParser::process(QCoreApplication & app)
 	parser.addPositionalArgument("result",
 			tr("Tracking result from the experiment."));
 
-	QCommandLineOption limitOption(QStringList() << "l" << "limit",
-			tr("Limit value (default 12)."), tr("limit"), "12");
+	QCommandLineOption limitOption(QStringList
+	{ "l", "limit" }, tr("Limit value (default 12)."), tr("limit"), "12");
 	parser.addOption(limitOption);
 
-	QCommandLineOption rangeOption(QStringList() << "r" << "range",
-			tr("Range around limit (default +-2)."), tr("range"), "2");
+	QCommandLineOption rangeOption(QStringList
+	{ "r", "range" }, tr("Range around limit (default +-2)."), tr("range"),
+			"2");
 	parser.addOption(rangeOption);
 
 	// process output -->

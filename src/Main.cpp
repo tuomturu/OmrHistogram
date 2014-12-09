@@ -8,28 +8,33 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QDebug>
 #include <QtGlobal>
 
 #include "CommandLineParser.hpp"
+#include "Histogram.hpp"
 
 int main(int argc, char * argv[])
 {
-	QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationName("okr-histogram");
-	QCoreApplication::setApplicationVersion("0.1");
+	QApplication app(argc, argv);
+	QApplication::setApplicationName("okr-histogram");
+	QApplication::setApplicationVersion("0.1");
 	CommandLineParser parser;
 
 	try
 	{
 		parser.process(app);
+
 	} catch (std::runtime_error & e)
 	{
 		qCritical(e.what());
 		return EXIT_FAILURE;
 	}
 
-	//return app.exec();
-	return EXIT_SUCCESS;
+	Histogram histogram(nullptr, parser);
+	histogram.show();
+
+	qDebug() << "Ready";
+	return app.exec();
 }
