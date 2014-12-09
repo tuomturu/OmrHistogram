@@ -12,6 +12,8 @@
 #include <QAbstractButton>
 #include <QMainWindow>
 
+#include <qwt_samples.h>
+
 #include "CommandLineParser.hpp"
 
 namespace Ui
@@ -23,6 +25,9 @@ class Histogram: public QMainWindow
 {
 Q_OBJECT
 
+private:
+	typedef QVector<QwtIntervalSample> SampleVector;
+
 public:
 	Histogram(QWidget * parent, CommandLineParser const & cmd_parser);
 
@@ -32,8 +37,11 @@ private:
 	void showData();
 
 	void on_buttonBox_clicked(QAbstractButton * button);
+	void saveData();
 
 private:
 	std::shared_ptr<Ui::MainWindow> ui;
+	SampleVector samples;
+
 	CommandLineParser const & cmd_parser;
 };
