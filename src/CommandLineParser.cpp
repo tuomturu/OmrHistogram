@@ -13,7 +13,7 @@
 #include <QtGlobal>
 
 CommandLineParser::CommandLineParser() :
-		limit(0), range(0)
+		limit(0), range(0), filter(0)
 {
 }
 

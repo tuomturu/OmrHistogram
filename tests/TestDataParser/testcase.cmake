@@ -4,11 +4,16 @@
 #####################################
 
 set(SOURCE_DIR
-	${CMAKE_SOURCE_DIR}
+	${CMAKE_SOURCE_DIR}/../src
+	)
+	
+set(TEST_SOURCE_DIR
+	${CMAKE_SOURCE_DIR}/TestDataParser
 	)
 	
 set(SOURCES
-	${SOURCE_DIR}/TestDataParser/DataParser_test.cpp
+    ${SOURCE_DIR}/DataParser.cpp
+	${TEST_SOURCE_DIR}/DataParser_test.cpp
 	)
 
 #####################################

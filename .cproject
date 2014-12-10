@@ -81,6 +81,9 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<sourceEntries>
+						<entry excluding="tests" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
@@ -97,18 +100,6 @@
 		<configuration configurationName="Test">
 			<resource resourceType="PROJECT" workspacePath="/OkrHistogram"/>
 		</configuration>
-	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="0.135289194;0.135289194.;cdt.managedbuild.tool.gnu.c.compiler.base.82718630;cdt.managedbuild.tool.gnu.c.compiler.input.1819249164">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="0.135289194;0.135289194.;cdt.managedbuild.tool.gnu.cpp.compiler.base.489081325;cdt.managedbuild.tool.gnu.cpp.compiler.input.823926945">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="0.135289194">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
@@ -138,5 +129,23 @@
 				<runAllBuilders>true</runAllBuilders>
 			</target>
 		</buildTargets>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="0.135289194;0.135289194.;cdt.managedbuild.tool.gnu.c.compiler.base.82718630;cdt.managedbuild.tool.gnu.c.compiler.input.1819249164">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.135289194;0.135289194.;cdt.managedbuild.tool.gnu.cpp.compiler.base.489081325;cdt.managedbuild.tool.gnu.cpp.compiler.input.823926945">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.135289194.327562698;0.135289194.327562698.;cdt.managedbuild.tool.gnu.c.compiler.base.1923755346;cdt.managedbuild.tool.gnu.c.compiler.input.912245723">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.135289194">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="0.135289194.327562698;0.135289194.327562698.;cdt.managedbuild.tool.gnu.cpp.compiler.base.1619866570;cdt.managedbuild.tool.gnu.cpp.compiler.input.1023694567">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 	</storageModule>
 </cproject>
