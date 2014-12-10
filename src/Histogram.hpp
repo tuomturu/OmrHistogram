@@ -29,7 +29,7 @@ private:
 	typedef QVector<QwtIntervalSample> SampleVector;
 
 public:
-	Histogram(QWidget * parent, CommandLineParser const & cmd_parser);
+	Histogram(QWidget * parent,  const CommandLineParser& cmd_parser);
 
 private:
 	void connectSignals();
@@ -43,5 +43,5 @@ private:
 	std::shared_ptr<Ui::MainWindow> ui;
 	SampleVector samples;
 
-	CommandLineParser const & cmd_parser;
+	const CommandLineParser & cmd_parser;
 };

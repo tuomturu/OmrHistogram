@@ -17,24 +17,24 @@
 
 int main(int argc, char * argv[])
 {
-	QApplication app(argc, argv);
-	QApplication::setApplicationName("okr-histogram");
-	QApplication::setApplicationVersion("0.1");
-	CommandLineParser parser;
+    QApplication app(argc, argv);
+    QApplication::setApplicationName("okr-histogram");
+    QApplication::setApplicationVersion("0.1");
+    CommandLineParser parser;
 
-	try
-	{
-		parser.process(app);
+    try
+    {
+        parser.process(app);
 
-	} catch (std::runtime_error & e)
-	{
-		qCritical(e.what());
-		return EXIT_FAILURE;
-	}
+    } catch (std::runtime_error & e)
+    {
+        qCritical(e.what());
+        return EXIT_FAILURE;
+    }
 
-	Histogram histogram(nullptr, parser);
-	histogram.show();
+    Histogram histogram(nullptr, parser);
+    histogram.show();
 
-	qDebug() << "Ready";
-	return app.exec();
+    qDebug() << "Ready";
+    return app.exec();
 }

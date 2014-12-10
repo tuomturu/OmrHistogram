@@ -20,7 +20,7 @@
 #include <qwt_plot_marker.h>
 #include <qwt_plot_shapeitem.h>
 
-Histogram::Histogram(QWidget * parent, CommandLineParser const & cmd_parser) :
+Histogram::Histogram(QWidget * parent, const CommandLineParser & cmd_parser) :
 		QMainWindow(parent), ui(new Ui::MainWindow), cmd_parser(cmd_parser)
 {
 	ui->setupUi(this);
@@ -98,8 +98,7 @@ void Histogram::showData()
 	hist->attach(ui->qwtPlot);
 
 	// draw vertical lines
-	for (auto i : QVector<double>
-	{ -1, 1 })
+	for (auto i : QVector<double> { -1, 1 })
 	{
 		QwtPlotMarker * line = new QwtPlotMarker;
 		line->setLineStyle(QwtPlotMarker::LineStyle::VLine);
@@ -111,8 +110,7 @@ void Histogram::showData()
 	// draw boxes around lines
 	QColor c = Qt::magenta;
 	c.setAlpha(128);
-	for (auto i : QVector<double>
-	{ -1, 1 })
+	for (auto i : QVector<double> { -1, 1 })
 	{
 		QwtPlotShapeItem * box = new QwtPlotShapeItem;
 		QRectF r(limit * i - range, -30, 2 * range, 60);

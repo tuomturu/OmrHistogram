@@ -1,4 +1,7 @@
 .directory
 
-build/debug/*
-build/release/*
+debug/*
+release/*
+doc/*
+tmp/*
+tests/debug/*

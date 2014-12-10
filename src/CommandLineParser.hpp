@@ -23,10 +23,12 @@ public:
 	QString getResultPath() const;
 	double getLimit() const;
 	double getRange() const;
+	int getFilter() const;
 
 private:
 	QString stimulus_path;
 	QString result_path;
 	double limit;
 	double range;
+	int filter;
 };
