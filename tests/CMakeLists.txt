@@ -25,7 +25,7 @@ set(TESTS
 
 foreach(TEST_CASE ${TESTS})
 
-    include(${PROJECT_SOURCE_DIR}/${TEST_CASE}/testcase.cmake)
+    include(${PROJECT_SOURCE_DIR}/${TEST_CASE}.cmake)
 
     add_executable(${TEST_CASE} ${SOURCES} ${MOC_SOURCES} ${UI_HEADERS})
     add_test(${TEST_CASE} ${TEST_CASE})

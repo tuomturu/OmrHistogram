@@ -15,6 +15,7 @@
 #include <QTextStream>
 #include <QVector>
 
+
 DataParser::DataParser() :
 		separator(';')
 {
