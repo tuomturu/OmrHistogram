@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.11)
 set(PROJECT_NAME OkrHistogram)
 project(${PROJECT_NAME})
 
-include(${PROJECT_SOURCE_DIR}../common.cmake)
+include(${PROJECT_SOURCE_DIR}/../common.cmake)
 
 #####################################
 ######## EXTERNAL PACKAGES ##########
