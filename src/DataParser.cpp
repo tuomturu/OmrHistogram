@@ -7,6 +7,9 @@
 
 #include "DataParser.hpp"
 
+#include <algorithm>
+#include <stdexcept>
+
 #include <QDebug>
 #include <QFile>
 #include <QIODevice>
@@ -15,23 +18,19 @@
 #include <QTextStream>
 #include <QVector>
 
-
-DataParser::DataParser() :
-		separator(';')
+DataParser::DataParser(const QString & filename)
 {
+	parseFile(filename);
 }
 
-bool DataParser::parseFile(const QString & filename)
+void DataParser::parseFile(const QString & filename)
 {
-	// clear old data
-	header.clear();
-	data.clear();
-
 	QFile file(filename);
 	QTextStream in(&file);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		return false;
+		throw std::runtime_error(
+				("Cannot open file " + filename).toStdString());
 	}
 
 	QStringList splitted;
@@ -41,45 +40,66 @@ bool DataParser::parseFile(const QString & filename)
 	// read header
 	while (!in.atEnd())
 	{
+		// remove white space and comment chars
 		line = in.readLine().trimmed();
-		if (line != "")
+		if (line.startsWith(comment))
 		{
-			header = line.split(separator);
-			//qDebug() << line;
+			line = line.remove(comment);
+			if (line != "")
+			{
+				splitted = line.split(separator);
+				// trim tags
+				for (int i = 0; i < splitted.size(); ++i)
+				{
+					splitted[i] = splitted[i].trimmed();
+				}
+				comments.append(splitted);
+			}
+		}
+		else if (line != "")
+		{
 			break;
 		}
 	}
+
+	// Assume the line containing most splits is the header
+	auto longest = std::max_element(comments.begin(), comments.end(),
+			[](QStringList const & a, QStringList const & b)
+			{	return a.size() < b.size();});
+
+	// no header found
+	if (longest == comments.end())
+	{
+		throw std::runtime_error(
+				("Cannot parse header from file " + filename).toStdString());
+	}
+	header = *longest;
 
 	// create empty data matrix
 	int width = header.size();
 	data = Matrix(width, QVector<double>());
 
 	// read numeric data
-	while (!in.atEnd())
+	while (!in.atEnd() || !line.isEmpty())
 	{
-		line = in.readLine().trimmed();
 		if (line != "")
 		{
 			splitted = line.split(separator);
 			if (splitted.size() != width)
 			{
 				// size does not match header
-				header.clear();
-				data.clear();
-				return false;
+				throw std::runtime_error(
+						("Error parsing data from file " + filename).toStdString());
 			}
 
 			for (int i = 0; i < width; ++i)
 			{
-				//qDebug() << line;
-				//qDebug() << splitted[i];
 				d = splitted[i].toDouble();
 				data[i].append(d);
 			}
 		}
+		line = in.readLine().trimmed();
 	}
-
-	return true;
 }
 
 bool DataParser::contains(const QString & key) const
@@ -95,6 +115,5 @@ QVector<double> DataParser::getDataVector(const QString & key) const
 		return data[idx];
 	}
 
-	return QVector<double>();
+	throw std::runtime_error((key + "not found").toStdString());
 }
-

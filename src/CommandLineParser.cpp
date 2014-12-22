@@ -12,9 +12,10 @@
 #include <QCommandLineParser>
 #include <QtGlobal>
 
-CommandLineParser::CommandLineParser() :
+CommandLineParser::CommandLineParser(QCoreApplication & app) :
 		limit(0), range(0), filter(0)
 {
+	process(app);
 }
 
 void CommandLineParser::process(QCoreApplication & app)
@@ -81,7 +82,7 @@ QString CommandLineParser::getStimulusPath() const
 	return stimulus_path;
 }
 
-QString CommandLineParser::getResultPath() const
+QString CommandLineParser::getSignalPath() const
 {
 	return result_path;
 }

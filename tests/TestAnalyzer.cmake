@@ -1,29 +1,17 @@
-cmake_minimum_required(VERSION 2.8.11)
-
-set(PROJECT_NAME OkrHistogram)
-project(${PROJECT_NAME})
-
-include(${PROJECT_SOURCE_DIR}/../common.cmake)
-
-#####################################
-######## EXTERNAL PACKAGES ##########
-#####################################
-
 
 #####################################
 ########### SOURCE FILES ############
 #####################################
 
 set(SOURCE_DIR
-	${CMAKE_SOURCE_DIR}
+	${CMAKE_SOURCE_DIR}/../src
 	)
 	
 set(SOURCES
     ${SOURCE_DIR}/Analyzer.cpp
-	${SOURCE_DIR}/CommandLineParser.cpp
-	${SOURCE_DIR}/DataParser.cpp
-	${SOURCE_DIR}/Histogram.cpp
-	${SOURCE_DIR}/Main.cpp
+    ${SOURCE_DIR}/CommandLineParser.cpp
+    ${SOURCE_DIR}/DataParser.cpp
+	${SOURCE_DIR}/Analyzer_test.cpp
 	)
 
 #####################################
@@ -31,6 +19,7 @@ set(SOURCES
 #####################################
 
 set(INCLUDE_DIRS
+    ${CMAKE_SOURCE_DIR}/../src
 	)
 
 include_directories(
@@ -58,14 +47,4 @@ set(UI_DIR
 	)
 
 QT5_WRAP_UI(UI_HEADERS
-    ${UI_DIR}/Histogram.ui
     )
-
-#####################################
-############## COMPILE ##############
-#####################################
-
-add_executable(${PROJECT_NAME} ${SOURCES} ${MOC_SOURCES} ${UI_HEADERS})
-target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})
-
-qt5_use_modules(${PROJECT_NAME} Widgets)

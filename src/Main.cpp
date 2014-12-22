@@ -12,29 +12,33 @@
 #include <QDebug>
 #include <QtGlobal>
 
+#include "Analyzer.hpp"
 #include "CommandLineParser.hpp"
 #include "Histogram.hpp"
 
 int main(int argc, char * argv[])
 {
-    QApplication app(argc, argv);
-    QApplication::setApplicationName("okr-histogram");
-    QApplication::setApplicationVersion("0.1");
-    CommandLineParser parser;
+	QApplication app(argc, argv);
+	QApplication::setApplicationName("okr-histogram");
+	QApplication::setApplicationVersion("0.1");
 
-    try
-    {
-        parser.process(app);
+	try
+	{
+		CommandLineParser parser(app);
+		DataParser stimulus(parser.getStimulusPath());
+		DataParser signal(parser.getSignalPath());
 
-    } catch (std::runtime_error & e)
-    {
-        qCritical(e.what());
-        return EXIT_FAILURE;
-    }
+		Analyzer analyzer(parser, stimulus, signal);
 
-    Histogram histogram(nullptr, parser);
-    histogram.show();
+		Histogram histogram(nullptr, parser);
+		histogram.show();
 
-    qDebug() << "Ready";
-    return app.exec();
+	} catch (std::runtime_error & e)
+	{
+		qCritical(e.what());
+		return EXIT_FAILURE;
+	}
+
+	qDebug() << "Ready";
+	return app.exec();
 }

@@ -7,23 +7,26 @@
 
 #pragma once
 
+#include "CommandLineParserInterface.hpp"
+
 #include <QObject>
 #include <QCoreApplication>
 
-class CommandLineParser: public QObject
+class CommandLineParser: public QObject, public CommandLineParserInterface
 {
 	Q_OBJECT
 
 public:
-	CommandLineParser();
-	void process(QCoreApplication & app);
+	CommandLineParser(QCoreApplication & app);
 
-public:
 	QString getStimulusPath() const;
-	QString getResultPath() const;
+	QString getSignalPath() const;
 	double getLimit() const;
 	double getRange() const;
 	int getFilter() const;
+
+private:
+	void process(QCoreApplication & app);
 
 private:
 	QString stimulus_path;

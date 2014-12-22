@@ -18,27 +18,23 @@ Q_OBJECT
 private slots:
 	void parseFile()
 	{
-		bool b;
-		DataParser dp;
-		b = dp.parseFile("tmp/stimulus.csv");
-		QCOMPARE(b, true);
-
-		b = dp.parseFile("tmp/stimulus.csv.error");
-		QCOMPARE(b, false);
+		DataParser("tmp/stimulus.txt");
+		DataParser("tmp/signal.txt");
+		QVERIFY_EXCEPTION_THROWN(DataParser("tmp/stimulus.txt.error"),
+				std::runtime_error);
 	}
 
-	void contains()
+	void stimulusContains()
 	{
 		bool b;
-		DataParser dp;
-		dp.parseFile("tmp/stimulus.csv");
+		DataParser dp("tmp/stimulus.txt");
 
-		QVector<QString> test_set { "x", "y", "x1", "y1", "angle", "result",
-				"rand" };
+		QVector<QString> test_set { "C", "V", "x", "y", "z", "angle", "angle_c",
+				"maskAngle", "maskAngle_c" };
 
 		for (auto s : test_set)
 		{
-			b = dp.contains("x");
+			b = dp.contains(s);
 			QCOMPARE(b, true);
 		}
 
@@ -46,21 +42,56 @@ private slots:
 		QCOMPARE(b, false);
 	}
 
-	void getDataVector()
+	void signalContains()
+	{
+		bool b;
+		DataParser dp("tmp/signal.txt");
+
+		QVector<QString> test_set { "Frame", "Snout X", "Snout Y", "Head1 X",
+				"Head1 Y", "Head2 X", "Head2 Y", "Body X", "Body Y", "Tail X",
+				"Tail Y", "angle" };
+
+		for (auto s : test_set)
+		{
+			b = dp.contains(s);
+			QCOMPARE(b, true);
+		}
+
+		b = dp.contains("err");
+		QCOMPARE(b, false);
+	}
+
+	void stimulusGetDataVector()
 	{
 		QVector<double> d;
-		DataParser dp;
-		dp.parseFile("tmp/stimulus.csv");
+		DataParser dp("tmp/stimulus.txt");
 
 		d = dp.getDataVector("x");
-		QCOMPARE(d.size(), 719);
+		QCOMPARE(d.size(), 3600);
 
-		d = dp.getDataVector("rand");
-		QCOMPARE(d[0], 1.37);
+		d = dp.getDataVector("angle");
+		QCOMPARE(d[1], 0.2);
+		QCOMPARE(d.last(), 0.2);
 
-		d = dp.getDataVector("err");
-		QCOMPARE(d.size(), 0);
+		QVERIFY_EXCEPTION_THROWN(dp.getDataVector("err"), std::runtime_error);
 	}
+
+	void signalGetDataVector()
+	{
+		QVector<double> d;
+		DataParser dp("tmp/signal.txt");
+
+		d = dp.getDataVector("Frame");
+		QCOMPARE(d.size(), 1489);
+		QCOMPARE(d[0], 0.0);
+		QCOMPARE(d.last(), 1488.0);
+
+		d = dp.getDataVector("Head1 X");
+		QCOMPARE(d[1], 294.0);
+
+		QVERIFY_EXCEPTION_THROWN(dp.getDataVector("err"), std::runtime_error);
+	}
+
 };
 
 QTEST_MAIN(TestDataParser)
