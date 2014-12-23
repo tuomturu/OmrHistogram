@@ -7,29 +7,29 @@
 
 #pragma once
 
+#include "Analyzer.hpp"
+#include "CommandLineParserInterface.hpp"
 #include <memory>
-
 #include <QAbstractButton>
 #include <QMainWindow>
-
 #include <qwt_samples.h>
-
-#include "CommandLineParser.hpp"
 
 namespace Ui
 {
 class MainWindow;
 }
 
-class Histogram: public QMainWindow
+class HistogramMainWindow: public QMainWindow
 {
-Q_OBJECT
+	Q_OBJECT
 
 private:
 	typedef QVector<QwtIntervalSample> SampleVector;
 
 public:
-	Histogram(QWidget * parent,  const CommandLineParser& cmd_parser);
+	HistogramMainWindow(QWidget * parent,
+			CommandLineParserInterface const & cmd_line,
+			Histogram const & histogram, double ratio);
 
 private:
 	void connectSignals();
@@ -43,5 +43,7 @@ private:
 	std::shared_ptr<Ui::MainWindow> ui;
 	SampleVector samples;
 
-	const CommandLineParser & cmd_parser;
+	CommandLineParserInterface const & cmd_line;
+	Histogram const & histogram;
+	double ratio;
 };

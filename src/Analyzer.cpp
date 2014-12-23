@@ -6,26 +6,52 @@
  */
 
 #include "Analyzer.hpp"
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <QDebug>
+#include <stdexcept>
 
 Analyzer::Analyzer(CommandLineParserInterface const & cmd_line,
-		DataParserInterface const & stimulus, double stimulus_fs,
-		DataParserInterface const & signal, double signal_fs) :
-		cmd_line(cmd_line), stimulus_fs(stimulus_fs), signal_fs(signal_fs)
+		Data const & stimulus, Data const & signal) :
+		cmd_line(cmd_line), stimulus(stimulus), signal(signal)
 {
-	this->stimulus = stimulus.getDataVector("angle");
-	this->signal = signal.getDataVector("angle");
+	// filter signal
+	Data filtered = filterSignal(signal, cmd_line.getFilter());
+
+	// read sampling rates and compare speeds
+	double stimulus_fs = cmd_line.getStimulusSamplingRate();
+	double signal_fs = cmd_line.getSignalSamplingRate();
+	Data comparison = compareSignals(stimulus, stimulus_fs, filtered,
+			signal_fs);
+
+	// calculate correct-incorrect ratio
+	double target = cmd_line.getLimit();
+	double tolerance = cmd_line.getRange();
+	ratio = correctIncorrectRatio(comparison, target, tolerance);
+
+	// generate histogram
+	histogram = calculateHistogram(comparison, -50, 50, tolerance/2);
 }
 
-double Analyzer::run()
+Analyzer::Analyzer(const CommandLineParserInterface& cmd_line,
+		Data const & stimulus, Data const & signal, bool testing) :
+		cmd_line(cmd_line), stimulus(stimulus), signal(signal), ratio(0)
 {
-	Data filtered = filterSignal(signal, cmd_line.getFilter());
-	Data comparison = compareSignals(stimulus, signal);
+}
 
-	return 0;
+Histogram const & Analyzer::getHistogram() const
+{
+	return histogram;
+}
+
+double Analyzer::getRatio() const
+{
+	return ratio;
 }
 
 Analyzer::Data Analyzer::mirrorPadSignal(Data signal, int pad_length,
-		int default_value)
+		int default_value) const
 {
 	// copy original signal
 	Data padded = signal;
@@ -46,7 +72,7 @@ Analyzer::Data Analyzer::mirrorPadSignal(Data signal, int pad_length,
 	return padded;
 }
 
-Analyzer::Data Analyzer::borderValuePadSignal(Data signal, int pad_length)
+Analyzer::Data Analyzer::borderValuePadSignal(Data signal, int pad_length) const
 {
 	// copy original signal
 	Data padded = signal;
@@ -68,7 +94,7 @@ Analyzer::Data Analyzer::borderValuePadSignal(Data signal, int pad_length)
 	return padded;
 }
 
-Analyzer::Data Analyzer::filterSignal(Data const & signal, int filter_len)
+Analyzer::Data Analyzer::filterSignal(Data const & signal, int filter_len) const
 {
 	// target vector
 	Data filtered = Data(signal.size(), 0);
@@ -103,8 +129,29 @@ Analyzer::Data Analyzer::filterSignal(Data const & signal, int filter_len)
 	return filtered;
 }
 
+double Analyzer::angleDiff(double current, double previous) const
+{
+	double v = current - previous;
+	if (v > 180)
+	{
+		v -= 360;
+	}
+	else if (v < -180)
+	{
+		v += 360;
+	}
+
+	return v;
+}
+
+//double Analyzer::angleDiff(double current, double previous) const
+//{
+//	double v = current - previous;
+//	return v;
+//}
+
 Analyzer::Data Analyzer::compareSignals(Data const & stimulus,
-		Data const & signal)
+		double stimulus_fs, Data const & signal, double signal_fs) const
 {
 	Data comparison;
 	// assume both start the same time
@@ -117,26 +164,122 @@ Analyzer::Data Analyzer::compareSignals(Data const & stimulus,
 	int len = qMin(int(stimulus.size() / scale), signal.size());
 
 	int j = 0;
+	double v;
 	double v_stimulus;
 	double v_signal;
-
+	bool correct_direction;
+	double v_diff;
 	// for every measured signal value
 	for (int i = 0; i < len; ++i)
 	{
 		j = i * scale;
+
 		if (j - 1 < 0 || i - 1 < 0)
 		{
 			// skip values at the beginning
 			continue;
 		}
 
-		// calculate speeds
-		v_stimulus = (stimulus[j] - stimulus[j - 1]) * stimulus_fs;
-		v_signal = (signal[i] - signal[i - 1]) * signal_fs;
+		// calculate speeds with angle wrapping. assume values are between [0-360[
+		v = angleDiff(stimulus[j], stimulus[j - 1]);
+		v_stimulus = v * stimulus_fs;
+		//
+		v = angleDiff(signal[i], signal[i - 1]);
+		v_signal = v * signal_fs;
 
+		// remove direction and calculate absolute difference
+		correct_direction = std::signbit(v_stimulus) == std::signbit(v_signal);
+		v_diff = std::abs(std::abs(v_stimulus) - std::abs(v_signal));
+
+		// sign tells if both are goint to the same direction
+		if (!correct_direction)
+		{
+			v_diff *= -1;
+		}
+
+		qDebug() << i << "\t" << j << "\t" << int(std::round(v_signal)) << "\t" << int(std::round(v_stimulus))
+				<< "\t" << int(std::round(v_diff));
 		// store speed difference
-		comparison.append(v_stimulus - v_signal);
+		comparison.append(v_diff);
 	}
 
 	return comparison;
+}
+
+double Analyzer::correctIncorrectRatio(Data const & data, double target,
+		double tolerance) const
+{
+	// 0 for correct, 1 for incorrect
+	Data bins(2, 0);
+	double a;
+
+	// calculate if signal starts to follow stimulus with a given target speed and tolerance
+	for (auto d : data)
+	{
+		a = std::abs(d);
+		if (target - tolerance < a && a < target + tolerance)
+		{
+			bins[std::signbit(d)] += 1;
+		}
+	}
+
+	// may return inf
+	return bins[0] / bins[1];
+}
+
+Histogram Analyzer::calculateHistogram(Data const & data, double bin_count,
+		double bin_size)
+{
+	if (data.isEmpty() || (bin_count <= 0 && bin_size <= 0))
+	{
+		throw std::runtime_error(
+				"data.isEmpty() || (bin_count <= 0 && bin_size <= 0)");
+	}
+
+	// bounds from min and max
+	auto minmax = std::minmax_element(data.begin(), data.end());
+
+	// from start of the first bin to the end of the last
+	if (bin_size <= 0)
+	{
+		bin_size = (*minmax.second - *minmax.first) / bin_count;
+	}
+	// call worker
+	return calculateHistogram(data, *minmax.first, *minmax.second, bin_size);
+}
+
+Histogram Analyzer::calculateHistogram(Data const & data, double low_lim,
+		double high_lim, double bin_size)
+{
+	if (data.isEmpty() || low_lim >= high_lim || bin_size <= 0)
+	{
+		throw std::runtime_error(
+				"data.isEmpty() || low_lim >= high_lim || bin_size <= 0");
+	}
+
+	// calculate bin backwards from the simpler function
+	int bin_count = (high_lim - low_lim) / bin_size
+			+ std::numeric_limits<double>::epsilon();
+	double hv = high_lim - low_lim;
+
+	Histogram hist;
+	hist.data = Data(bin_count, 0);
+	// add data to bins
+
+	int i;
+	for (auto d : data)
+	{
+		// calculate index from position between low and high lim
+		i = (d - low_lim) / hv * bin_count;
+
+		// put all values outside of the bounds to boundary bins
+		i = qMin(i, bin_count - 1);
+		i = qMax(i, 0);
+		hist.data[i] += 1;
+	}
+
+	hist.bin_size = bin_size;
+	hist.low_limit = low_lim;
+	hist.high_limit = high_lim;
+	return hist;
 }

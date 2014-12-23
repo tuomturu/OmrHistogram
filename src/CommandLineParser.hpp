@@ -21,6 +21,8 @@ public:
 
 	QString getStimulusPath() const;
 	QString getSignalPath() const;
+	double getStimulusSamplingRate() const;
+	double getSignalSamplingRate() const;
 	double getLimit() const;
 	double getRange() const;
 	int getFilter() const;
@@ -30,7 +32,11 @@ private:
 
 private:
 	QString stimulus_path;
-	QString result_path;
+	QString signal_path;
+
+	double stimulus_fs;
+	double signal_fs;
+
 	double limit;
 	double range;
 	int filter;

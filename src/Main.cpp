@@ -14,7 +14,8 @@
 
 #include "Analyzer.hpp"
 #include "CommandLineParser.hpp"
-#include "Histogram.hpp"
+#include "DataParser.hpp"
+#include "HistogramMainWindow.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -24,21 +25,20 @@ int main(int argc, char * argv[])
 
 	try
 	{
-		CommandLineParser parser(app);
-		DataParser stimulus(parser.getStimulusPath());
-		DataParser signal(parser.getSignalPath());
+		CommandLineParser cmd_line(app);
+		DataParser stimulus(cmd_line.getStimulusPath());
+		DataParser signal(cmd_line.getSignalPath());
 
-		Analyzer analyzer(parser, stimulus, signal);
+		Analyzer analyzer(cmd_line, stimulus.getDataVector("angle"),
+				signal.getDataVector("angle"));
 
-		Histogram histogram(nullptr, parser);
+		HistogramMainWindow histogram(nullptr, cmd_line, analyzer.getHistogram(), analyzer.getRatio());
 		histogram.show();
+		return app.exec();
 
 	} catch (std::runtime_error & e)
 	{
 		qCritical(e.what());
 		return EXIT_FAILURE;
 	}
-
-	qDebug() << "Ready";
-	return app.exec();
 }

@@ -22,7 +22,7 @@ set(SOURCES
     ${SOURCE_DIR}/Analyzer.cpp
 	${SOURCE_DIR}/CommandLineParser.cpp
 	${SOURCE_DIR}/DataParser.cpp
-	${SOURCE_DIR}/Histogram.cpp
+	${SOURCE_DIR}/HistogramMainWindow.cpp
 	${SOURCE_DIR}/Main.cpp
 	)
 

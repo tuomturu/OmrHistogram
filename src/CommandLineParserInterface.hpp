@@ -19,6 +19,8 @@ public:
 
 	virtual QString getStimulusPath() const = 0;
 	virtual QString getSignalPath() const = 0;
+	virtual double getStimulusSamplingRate() const = 0;
+	virtual double getSignalSamplingRate() const = 0;
 	virtual double getLimit() const = 0;
 	virtual double getRange() const = 0;
 	virtual int getFilter() const = 0;
