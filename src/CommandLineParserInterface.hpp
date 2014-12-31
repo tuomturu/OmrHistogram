@@ -21,7 +21,10 @@ public:
 	virtual QString getSignalPath() const = 0;
 	virtual double getStimulusSamplingRate() const = 0;
 	virtual double getSignalSamplingRate() const = 0;
-	virtual double getLimit() const = 0;
-	virtual double getRange() const = 0;
-	virtual int getFilter() const = 0;
+	virtual double getTargetVelocity() const = 0;
+	virtual double getLowerLimit() const = 0;
+	virtual double getUpperLimit() const = 0;
+	virtual int getFilterLength() const = 0;
+	virtual double getHistogramRange() const = 0;
+	virtual double getHistogramBinSize() const = 0;
 };

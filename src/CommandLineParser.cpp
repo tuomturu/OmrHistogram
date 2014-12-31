@@ -13,47 +13,121 @@
 #include <QtGlobal>
 
 CommandLineParser::CommandLineParser(QCoreApplication & app) :
-		limit(0), range(0), filter(0)
+		lower_limit(0), upper_limit(0), filter_length(0)
 {
 	process(app);
 }
 
+// helpers -->
+
+QCommandLineOption CommandLineParser::addOption(QString const & name,
+		QString const & description, QString const & value_name,
+		double default_value)
+{
+	QString desc =
+			QString("%1 (%2 %3)").arg(description).arg(tr("default")).arg(
+					default_value);
+	QCommandLineOption option(name, desc, value_name,
+			QString::number(default_value));
+	parser.addOption(option);
+
+	return option;
+}
+
+QCommandLineOption CommandLineParser::addOption(QStringList const & name,
+		QString const & description, QString const & value_name,
+		double default_value)
+{
+	QString desc =
+			QString("%1 (%2 %3)").arg(description).arg(tr("default")).arg(
+					default_value);
+	QCommandLineOption option(name, desc, value_name,
+			QString::number(default_value));
+	parser.addOption(option);
+
+	return option;
+}
+
+int CommandLineParser::parseInt(QCommandLineOption const & option)
+{
+	bool ok;
+	int value = parser.value(option).toInt(&ok);
+	if (!ok)
+	{
+		QStringList names = option.names();
+		QString name = names.last();
+
+		QString msg =
+				QString("Error parsing command line input for %1. '%2' given").arg(
+						name).arg(parser.value(option));
+		throw std::runtime_error(msg.toStdString());
+	}
+	return value;
+}
+double CommandLineParser::parseDouble(QCommandLineOption const & option)
+{
+	bool ok;
+	double value = parser.value(option).toDouble(&ok);
+	if (!ok)
+	{
+		QStringList names = option.names();
+		QString name = names.last();
+
+		QString msg =
+				QString("Error parsing command line input for %1. '%2' given").arg(
+						name).arg(parser.value(option));
+		throw std::runtime_error(msg.toStdString());
+	}
+	return value;
+}
+
+// <-- helpers
+
 void CommandLineParser::process(QCoreApplication & app)
 {
-	QCommandLineParser parser;
-
-	// add options -->
-
 	parser.setApplicationDescription("Okr histogram plotter");
 	parser.addHelpOption();
 	parser.addVersionOption();
 
+	// add options -->
 	parser.addPositionalArgument("stimulus",
 			tr("Stimulus control file used in the experiment."));
-	parser.addPositionalArgument("result",
+
+	parser.addPositionalArgument("signal",
 			tr("Tracking result from the experiment."));
 
-	QCommandLineOption stimulus_fs_option("stimulus_fs",
-			tr("Stimulus sampling rate (default 60)."),
-			tr("Stimulus sampling rate"), "60");
-	parser.addOption(stimulus_fs_option);
+	QCommandLineOption stimulus_fs = addOption("stimulus_fs",
+			tr("Stimulus sampling rate"), tr("stimulus sampling rate"), 60);
 
-	QCommandLineOption signal_fs_option("signal_fs",
-			tr("Signal sampling rate (default 25)."),
-			tr("Signal sampling rate"), "25");
-	parser.addOption(signal_fs_option);
+	QCommandLineOption signal_fs = addOption("signal_fs",
+			tr("Signal sampling rate"), tr("signal sampling rate"), 25);
 
-	QCommandLineOption limitOption(QStringList { "l", "limit" },
-			tr("Limit value (default 12)."), tr("limit"), "12");
-	parser.addOption(limitOption);
+	QCommandLineOption target_velocity =
+			addOption(QStringList { "t", "targetvelocity" },
+					tr(
+							"Target velocity for drawing histogram. Does not affect to the calculated ratio."),
+					tr("target velocity"), 12);
 
-	QCommandLineOption rangeOption(QStringList { "r", "range" },
-			tr("Range around limit (default +-2)."), tr("range"), "2");
-	parser.addOption(rangeOption);
+	QCommandLineOption lower_limit = addOption(
+			QStringList { "l", "lowerlimit" },
+			tr("Max deviation from stimulus speed to negative direction"),
+			tr("lower limit"), 10);
 
-	QCommandLineOption filterOption(QStringList { "f", "filter" },
-			tr("Filter length (default 15)."), tr("filter"), "15");
-	parser.addOption(filterOption);
+	QCommandLineOption upper_limit = addOption(
+			QStringList { "u", "upperlimit" },
+			tr("Max deviation from stimulus speed to positive direction"),
+			tr("upper limit"), 2);
+
+	QCommandLineOption filter_length = addOption(QStringList { "f",
+			"filterlength" }, tr("Filter length"), tr("filter length"), 15);
+
+	QCommandLineOption histogram_range = addOption(QStringList { "r",
+			"histogramrange" }, tr("Histogram range (-range,range) "),
+			tr("histogram range"), 20);
+
+	QCommandLineOption histogram_bin_size = addOption(QStringList { "b",
+			"histogrambinsize" }, tr("Histogram bin size"),
+			tr("histogram bin size"), 0.5);
 
 	// process output -->
 
@@ -63,56 +137,22 @@ void CommandLineParser::process(QCoreApplication & app)
 	if (args.size() != 2)
 	{
 		throw std::runtime_error(
-				"Application takes 2 positional arguments. See help for details.");
+				"Application takes 2 positional arguments (stimulus file path and signal file path). See help for details.");
 	}
 
+	// positional options
 	stimulus_path = args[0];
 	signal_path = args[1];
 
-	bool ok;
-
-	stimulus_fs = parser.value(stimulus_fs_option).toDouble(&ok);
-	if (!ok)
-	{
-		QString msg = QString(
-				"Stimulus sample rate has to be a number. '%1' given").arg(
-				parser.value(stimulus_fs_option));
-		throw std::runtime_error(msg.toStdString());
-	}
-
-	signal_fs = parser.value(signal_fs_option).toDouble(&ok);
-	if (!ok)
-	{
-		QString msg = QString(
-				"Signal sample rate has to be a number. '%1' given").arg(
-				parser.value(signal_fs_option));
-		throw std::runtime_error(msg.toStdString());
-	}
-
-	limit = parser.value(limitOption).toDouble(&ok);
-	if (!ok)
-	{
-		QString msg = QString("Limit has to be a number. '%1' given").arg(
-				parser.value(limitOption));
-		throw std::runtime_error(msg.toStdString());
-	}
-
-	range = parser.value(rangeOption).toDouble(&ok);
-	if (!ok)
-	{
-		QString msg = QString("Range has to be a number. '%1' given").arg(
-				parser.value(rangeOption));
-		throw std::runtime_error(msg.toStdString());
-	}
-
-	filter = parser.value(filterOption).toDouble(&ok);
-	if (!ok)
-	{
-		QString msg =
-				QString("Filter length has to be a number. '%1' given").arg(
-						parser.value(filterOption));
-		throw std::runtime_error(msg.toStdString());
-	}
+	// key name options
+	this->stimulus_fs = parseDouble(stimulus_fs);
+	this->signal_fs = parseDouble(signal_fs);
+	this->target_velocity = parseDouble(target_velocity);
+	this->lower_limit = parseDouble(lower_limit);
+	this->upper_limit = parseDouble(upper_limit);
+	this->filter_length = parseInt(filter_length);
+	this->histogram_range = parseDouble(histogram_range);
+	this->histogram_bin_size = parseDouble(histogram_bin_size);
 }
 
 QString CommandLineParser::getStimulusPath() const
@@ -135,17 +175,32 @@ double CommandLineParser::getSignalSamplingRate() const
 	return signal_fs;
 }
 
-double CommandLineParser::getLimit() const
+double CommandLineParser::getTargetVelocity() const
 {
-	return limit;
+	return target_velocity;
 }
 
-double CommandLineParser::getRange() const
+double CommandLineParser::getLowerLimit() const
 {
-	return range;
+	return lower_limit;
 }
 
-int CommandLineParser::getFilter() const
+double CommandLineParser::getUpperLimit() const
 {
-	return filter;
+	return upper_limit;
+}
+
+int CommandLineParser::getFilterLength() const
+{
+	return filter_length;
+}
+
+double CommandLineParser::getHistogramRange() const
+{
+	return histogram_range;
+}
+
+double CommandLineParser::getHistogramBinSize() const
+{
+	return histogram_bin_size;
 }

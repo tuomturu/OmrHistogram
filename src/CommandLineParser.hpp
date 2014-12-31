@@ -11,6 +11,7 @@
 
 #include <QObject>
 #include <QCoreApplication>
+#include <QCommandLineParser>
 
 class CommandLineParser: public QObject, public CommandLineParserInterface
 {
@@ -23,21 +24,37 @@ public:
 	QString getSignalPath() const;
 	double getStimulusSamplingRate() const;
 	double getSignalSamplingRate() const;
-	double getLimit() const;
-	double getRange() const;
-	int getFilter() const;
+	double getTargetVelocity() const;
+	double getLowerLimit() const;
+	double getUpperLimit() const;
+	int getFilterLength() const;
+	double getHistogramRange() const;
+	double getHistogramBinSize() const;
 
 private:
 	void process(QCoreApplication & app);
+	QCommandLineOption addOption(QString const & name,
+			QString const & description, QString const & value_name, double default_value);
+	QCommandLineOption addOption(QStringList const & name,
+			QString const & description,QString const & value_name,  double default_value);
+
+	int parseInt(QCommandLineOption const & option);
+	double parseDouble(QCommandLineOption const & option);
 
 private:
+	QCommandLineParser parser;
+
 	QString stimulus_path;
 	QString signal_path;
 
 	double stimulus_fs;
 	double signal_fs;
 
-	double limit;
-	double range;
-	int filter;
+	double target_velocity;
+	double lower_limit;
+	double upper_limit;
+	int filter_length;
+
+	double histogram_range;
+	double histogram_bin_size;
 };

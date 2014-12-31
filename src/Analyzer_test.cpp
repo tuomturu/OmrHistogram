@@ -33,17 +33,30 @@ public:
 	{
 		return 25;
 	}
-	double getLimit() const
+	double getTargetVelocity() const
 	{
 		return 12;
 	}
-	double getRange() const
+	double getLowerLimit() const
+	{
+		return 10;
+	}
+	double getUpperLimit() const
 	{
 		return 2;
 	}
-	int getFilter() const
+	int getFilterLength() const
 	{
 		return 15;
+	}
+	double getHistogramRange() const
+	{
+		return 20;
+	}
+
+	double getHistogramBinSize() const
+	{
+		return 0.5;
 	}
 };
 
@@ -61,7 +74,7 @@ public:
 	using Analyzer::mirrorPadSignal;
 	using Analyzer::borderValuePadSignal;
 	using Analyzer::filterSignal;
-	using Analyzer::compareSignals;
+	using Analyzer::calculateSpeedDifference;
 	using Analyzer::correctIncorrectRatio;
 	using Analyzer::calculateHistogram;
 
@@ -76,6 +89,7 @@ class TestAnalyzer: public QObject
 
 private:
 	typedef Analyzer::Data Data;
+	typedef QVector<SpeedComparison> SpeedDiffVector;
 
 	DummyCommandLine cmd_line;
 
@@ -182,22 +196,33 @@ private slots:
 
 	void compareSignals()
 	{
+		auto compare = [](double value, double target, double tol = 1e-6)
+		{
+			return target - tol < value && value < target + tol;
+		};
+
 		AnalyzerProxy ap(cmd_line, stimulus, signal);
 
 		QVector<int> samples = { 10, 25, 30, 50, 60, 120, 180 };
 		for (auto sample_size : samples)
 		{
 			Data test_stimulus = getDataVector(sample_size);
-			Data comparison = ap.compareSignals(test_stimulus, stimulus_fs,
-					signal, signal_fs);
+			SpeedDiffVector speed_diff = ap.calculateSpeedDifference(
+					test_stimulus, stimulus_fs, signal, signal_fs);
 
-			double target = std::abs(
-					(test_stimulus[1] - test_stimulus[0]) * stimulus_fs
-							- (signal[1] - signal[0]) * signal_fs);
+			// test signal and stimulus rise monotonically
+			double target_signal = (signal[1] - signal[0]) * signal_fs;
+			double target_stimulus = (test_stimulus[1] - test_stimulus[0])
+					* stimulus_fs;
 
-			for (auto d : comparison)
+			double target_diff = target_signal - target_stimulus;
+
+			for (auto d : speed_diff)
 			{
-				QVERIFY(d > target - 1e-6 && d < target + 1e-6);
+				QVERIFY(compare(d.stimulus_speed, target_stimulus));
+				QVERIFY(compare(d.signal_speed, target_signal));
+				QVERIFY(compare(d.difference, target_diff));
+				QVERIFY(d.same_direction);
 			}
 		}
 	}
@@ -206,13 +231,15 @@ private slots:
 	{
 		AnalyzerProxy ap(cmd_line, stimulus, signal);
 
-		Data samples = { 12, 12, 13, -11, -12 };
+		SpeedDiffVector samples = { { 0, 0, true, 0 }, { 0, 0, true, 0 }, { 0,
+				0, true, -9 }, { 0, 0, true, -11 }, { 0, 0, true, 3 }, { 0, 0,
+				false, 0 }, { 0, 0, false, 0 } };
 
-		double ratio = ap.correctIncorrectRatio(samples, 12, 2);
+		double ratio = ap.correctIncorrectRatio(samples, 10, 2);
 		QCOMPARE(ratio, 3.0 / 2);
 	}
 
-	void calculateHistogram1()
+	void calculateHistogram()
 	{
 		AnalyzerProxy ap(cmd_line, stimulus, signal);
 
@@ -276,34 +303,6 @@ private slots:
 						numpy_hist.begin()));
 	}
 
-	void calculateHistogram2()
-	{
-		DataParser stimulus_parser(cmd_line.getStimulusPath());
-		DataParser signal_parser(cmd_line.getSignalPath());
-
-		stimulus = stimulus_parser.getDataVector("angle");
-		signal = signal_parser.getDataVector("angle");
-
-		AnalyzerProxy ap(cmd_line, stimulus, signal);
-
-		// filter signal
-		Data filtered = ap.filterSignal(signal, cmd_line.getFilter());
-
-		// read sampling rates and compare speeds
-		double stimulus_fs = cmd_line.getStimulusSamplingRate();
-		double signal_fs = cmd_line.getSignalSamplingRate();
-		Data comparison = ap.compareSignals(stimulus, stimulus_fs, filtered,
-				signal_fs);
-
-		auto minmax = std::minmax_element(comparison.begin(), comparison.end());
-		qDebug() << *minmax.first;
-		qDebug() << *minmax.second;
-
-		// generate histogram
-		Histogram histogram = ap.calculateHistogram(comparison, -200, 200, 1);
-		qDebug() << histogram.data.size();
-	}
-
 	void fullTest()
 	{
 		DataParser stimulus_parser(cmd_line.getStimulusPath());
@@ -313,7 +312,10 @@ private slots:
 		signal = signal_parser.getDataVector("angle");
 
 		Analyzer analyzer(cmd_line, stimulus, signal);
-		qDebug() << analyzer.getRatio();
+
+		double ratio = analyzer.getRatio();
+		qDebug() << ratio;
+		QVERIFY(1.51 < ratio && ratio < 1.53);
 	}
 
 };

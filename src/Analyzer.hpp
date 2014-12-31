@@ -9,6 +9,7 @@
 
 #include "CommandLineParserInterface.hpp"
 #include <QVector>
+#include <QPair>
 
 struct Histogram
 {
@@ -18,10 +19,20 @@ struct Histogram
 	double bin_size;
 };
 
+struct SpeedComparison
+{
+	double stimulus_speed;
+	double signal_speed;
+
+	bool same_direction;
+	double difference;
+};
+
 class Analyzer
 {
 public:
 	typedef QVector<double> Data;
+	typedef QVector<SpeedComparison> SpeedComparisonVector;
 
 public:
 	Analyzer(CommandLineParserInterface const & cmd_line, Data const & stimulus,
@@ -41,11 +52,12 @@ protected:
 	Data filterSignal(Data const & signal, int filter_len) const;
 
 	double angleDiff(double current, double previous) const;
-	Data compareSignals(Data const & stimulus, double stimulus_fs,
-			Data const & signal, double signal_fs) const;
 
-	double correctIncorrectRatio(Data const & data, double target,
-			double tolerance) const;
+	SpeedComparisonVector calculateSpeedDifference(Data const & stimulus,
+			double stimulus_fs, Data const & signal, double signal_fs) const;
+
+	double correctIncorrectRatio(SpeedComparisonVector const & data,
+			double lower_limit, double upper_limit) const;
 
 	Histogram calculateHistogram(Data const & data, double bin_count = 10,
 			double bin_size = -1);
@@ -58,7 +70,6 @@ private:
 	Data stimulus;
 	Data signal;
 
-	// calculated results
 	double ratio;
 	Histogram histogram;
 };

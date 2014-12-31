@@ -87,13 +87,16 @@ void HistogramMainWindow::readData()
 
 void HistogramMainWindow::showData()
 {
-	double limit = cmd_line.getLimit();
-	double range = cmd_line.getRange();
+	double target = cmd_line.getTargetVelocity();
+	double lower_limit = cmd_line.getLowerLimit();
+	double upper_limit = cmd_line.getUpperLimit();
+	int filter_len = cmd_line.getFilterLength();
 
 	// set range and limit texts
-	ui->lineEdit_limit->setText(QString::number(limit));
-	ui->lineEdit_range->setText(QString::number(range));
+	ui->lineEdit_lower_limit->setText(QString::number(lower_limit));
+	ui->lineEdit_upper_limit->setText(QString::number(upper_limit));
 	ui->lineEdit_ratio->setText(QString::number(ratio));
+	ui->lineEdit_filterLength->setText(QString::number(filter_len));
 
 	// set plot background
 	ui->qwtPlot->setCanvasBackground(QBrush(Qt::white));
@@ -110,7 +113,7 @@ void HistogramMainWindow::showData()
 		QwtPlotMarker * line = new QwtPlotMarker;
 		line->setLineStyle(QwtPlotMarker::LineStyle::VLine);
 		line->setLinePen(Qt::black, 2);
-		line->setXValue(limit * i);
+		line->setXValue(target * i);
 		line->attach(ui->qwtPlot);
 	}
 
@@ -122,7 +125,8 @@ void HistogramMainWindow::showData()
 	for (auto i : QVector<double> { -1, 1 })
 	{
 		QwtPlotShapeItem * box = new QwtPlotShapeItem;
-		QRectF r(limit * i - range, 0, 2 * range, *max_value);
+		// QRectF(qreal left, qreal top, qreal width, qreal height);
+		QRectF r((target - lower_limit) * i, 0, (upper_limit + lower_limit)*i, *max_value);
 		box->setRect(r);
 		box->setBrush(QBrush(c));
 		box->setZ(20);

@@ -16,22 +16,39 @@ Analyzer::Analyzer(CommandLineParserInterface const & cmd_line,
 		Data const & stimulus, Data const & signal) :
 		cmd_line(cmd_line), stimulus(stimulus), signal(signal)
 {
-	// filter signal
-	Data filtered = filterSignal(signal, cmd_line.getFilter());
-
-	// read sampling rates and compare speeds
 	double stimulus_fs = cmd_line.getStimulusSamplingRate();
 	double signal_fs = cmd_line.getSignalSamplingRate();
-	Data comparison = compareSignals(stimulus, stimulus_fs, filtered,
-			signal_fs);
+	double lower_limit = cmd_line.getLowerLimit();
+	double upper_limit = cmd_line.getUpperLimit();
+	int filter_len = cmd_line.getFilterLength();
+	double high_lim = cmd_line.getHistogramRange();
+	double low_lim = -high_lim;
+	double bin_size = cmd_line.getHistogramBinSize();
+
+	// filter signal
+	Data filtered_signal = filterSignal(signal, filter_len);
+
+	// read sampling rates and compare speeds
+	SpeedComparisonVector comparison = calculateSpeedDifference(stimulus,
+			stimulus_fs, filtered_signal, signal_fs);
 
 	// calculate correct-incorrect ratio
-	double target = cmd_line.getLimit();
-	double tolerance = cmd_line.getRange();
-	ratio = correctIncorrectRatio(comparison, target, tolerance);
+	ratio = correctIncorrectRatio(comparison, lower_limit, upper_limit);
 
 	// generate histogram
-	histogram = calculateHistogram(comparison, -50, 50, tolerance/2);
+	Data speed;
+	double d;
+	for (auto t : comparison)
+	{
+		// move speeds going to wrong direction to the negative side
+		d = std::abs(t.signal_speed);
+		if (!t.same_direction)
+		{
+			d *= -1;
+		}
+		speed.append(d);
+	}
+	histogram = calculateHistogram(speed, low_lim, high_lim, bin_size);
 }
 
 Analyzer::Analyzer(const CommandLineParserInterface& cmd_line,
@@ -121,7 +138,6 @@ Analyzer::Data Analyzer::filterSignal(Data const & signal, int filter_len) const
 		for (int j = s; j <= e; ++j)
 		{
 			val += padded[j + half_filter];
-			padded.value(j, 0);
 		}
 		filtered[i] = val / filter_len;
 	}
@@ -144,16 +160,12 @@ double Analyzer::angleDiff(double current, double previous) const
 	return v;
 }
 
-//double Analyzer::angleDiff(double current, double previous) const
-//{
-//	double v = current - previous;
-//	return v;
-//}
-
-Analyzer::Data Analyzer::compareSignals(Data const & stimulus,
-		double stimulus_fs, Data const & signal, double signal_fs) const
+Analyzer::SpeedComparisonVector Analyzer::calculateSpeedDifference(
+		Data const & stimulus, double stimulus_fs, Data const & signal,
+		double signal_fs) const
 {
-	Data comparison;
+	SpeedComparisonVector data;
+
 	// assume both start the same time
 	// take all values from signal and compare to the closest time point in stimulus
 
@@ -167,8 +179,6 @@ Analyzer::Data Analyzer::compareSignals(Data const & stimulus,
 	double v;
 	double v_stimulus;
 	double v_signal;
-	bool correct_direction;
-	double v_diff;
 	// for every measured signal value
 	for (int i = 0; i < len; ++i)
 	{
@@ -188,43 +198,34 @@ Analyzer::Data Analyzer::compareSignals(Data const & stimulus,
 		v_signal = v * signal_fs;
 
 		// remove direction and calculate absolute difference
-		correct_direction = std::signbit(v_stimulus) == std::signbit(v_signal);
-		v_diff = std::abs(std::abs(v_stimulus) - std::abs(v_signal));
-
-		// sign tells if both are goint to the same direction
-		if (!correct_direction)
-		{
-			v_diff *= -1;
-		}
-
-		qDebug() << i << "\t" << j << "\t" << int(std::round(v_signal)) << "\t" << int(std::round(v_stimulus))
-				<< "\t" << int(std::round(v_diff));
-		// store speed difference
-		comparison.append(v_diff);
+		SpeedComparison v_diff;
+		v_diff.signal_speed = v_signal;
+		v_diff.stimulus_speed = v_stimulus;
+		v_diff.same_direction = std::signbit(v_stimulus)
+				== std::signbit(v_signal);
+		v_diff.difference = std::abs(v_signal) - std::abs(v_stimulus);
+		data.append(v_diff);
 	}
-
-	return comparison;
+	return data;
 }
 
-double Analyzer::correctIncorrectRatio(Data const & data, double target,
-		double tolerance) const
+double Analyzer::correctIncorrectRatio(SpeedComparisonVector const & data,
+		double lower_limit, double upper_limit) const
 {
-	// 0 for correct, 1 for incorrect
+	// 1 for correct, 0 for incorrect
 	Data bins(2, 0);
-	double a;
 
 	// calculate if signal starts to follow stimulus with a given target speed and tolerance
 	for (auto d : data)
 	{
-		a = std::abs(d);
-		if (target - tolerance < a && a < target + tolerance)
+		if (-lower_limit < d.difference && d.difference < upper_limit)
 		{
-			bins[std::signbit(d)] += 1;
+			bins[static_cast<int>(d.same_direction)] += 1;
 		}
 	}
 
 	// may return inf
-	return bins[0] / bins[1];
+	return bins[1] / bins[0];
 }
 
 Histogram Analyzer::calculateHistogram(Data const & data, double bin_count,
