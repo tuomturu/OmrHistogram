@@ -34,9 +34,7 @@ public:
 private:
 	void process(QCoreApplication & app);
 	QCommandLineOption addOption(QString const & name,
-			QString const & description, QString const & value_name, double default_value);
-	QCommandLineOption addOption(QStringList const & name,
-			QString const & description,QString const & value_name,  double default_value);
+			QString const & description, double default_value);
 
 	int parseInt(QCommandLineOption const & option);
 	double parseDouble(QCommandLineOption const & option);

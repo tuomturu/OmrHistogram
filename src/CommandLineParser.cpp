@@ -21,27 +21,10 @@ CommandLineParser::CommandLineParser(QCoreApplication & app) :
 // helpers -->
 
 QCommandLineOption CommandLineParser::addOption(QString const & name,
-		QString const & description, QString const & value_name,
-		double default_value)
+		QString const & description, double default_value)
 {
-	QString desc =
-			QString("%1 (%2 %3)").arg(description).arg(tr("default")).arg(
-					default_value);
-	QCommandLineOption option(name, desc, value_name,
-			QString::number(default_value));
-	parser.addOption(option);
-
-	return option;
-}
-
-QCommandLineOption CommandLineParser::addOption(QStringList const & name,
-		QString const & description, QString const & value_name,
-		double default_value)
-{
-	QString desc =
-			QString("%1 (%2 %3)").arg(description).arg(tr("default")).arg(
-					default_value);
-	QCommandLineOption option(name, desc, value_name,
+	QString value_name = QString::number(default_value);
+	QCommandLineOption option(name, description, value_name,
 			QString::number(default_value));
 	parser.addOption(option);
 
@@ -96,38 +79,32 @@ void CommandLineParser::process(QCoreApplication & app)
 	parser.addPositionalArgument("signal",
 			tr("Tracking result from the experiment."));
 
-	QCommandLineOption stimulus_fs = addOption("stimulus_fs",
-			tr("Stimulus sampling rate"), tr("stimulus sampling rate"), 60);
+	QCommandLineOption stimulus_fs = addOption("stimulus-fs",
+			tr("Stimulus sampling rate"), 60);
 
-	QCommandLineOption signal_fs = addOption("signal_fs",
-			tr("Signal sampling rate"), tr("signal sampling rate"), 25);
+	QCommandLineOption signal_fs = addOption("signal-fs",
+			tr("Signal sampling rate"), 25);
 
 	QCommandLineOption target_velocity =
-			addOption(QStringList { "t", "targetvelocity" },
+			addOption("target-velocity",
 					tr(
 							"Target velocity for drawing histogram. Does not affect to the calculated ratio."),
-					tr("target velocity"), 12);
+					12);
 
-	QCommandLineOption lower_limit = addOption(
-			QStringList { "l", "lowerlimit" },
-			tr("Max deviation from stimulus speed to negative direction"),
-			tr("lower limit"), 10);
+	QCommandLineOption lower_limit = addOption("lower-limit",
+			tr("Max deviation from stimulus speed to negative direction"), 10);
 
-	QCommandLineOption upper_limit = addOption(
-			QStringList { "u", "upperlimit" },
-			tr("Max deviation from stimulus speed to positive direction"),
-			tr("upper limit"), 2);
+	QCommandLineOption upper_limit = addOption("upper-limit",
+			tr("Max deviation from stimulus speed to positive direction"), 2);
 
-	QCommandLineOption filter_length = addOption(QStringList { "f",
-			"filterlength" }, tr("Filter length"), tr("filter length"), 15);
+	QCommandLineOption filter_length = addOption("filter-length",
+			tr("Filter length"), 15);
 
-	QCommandLineOption histogram_range = addOption(QStringList { "r",
-			"histogramrange" }, tr("Histogram range (-range,range) "),
-			tr("histogram range"), 20);
+	QCommandLineOption histogram_range = addOption("histogram-range",
+			tr("Histogram range (-range,range) "), 20);
 
-	QCommandLineOption histogram_bin_size = addOption(QStringList { "b",
-			"histogrambinsize" }, tr("Histogram bin size"),
-			tr("histogram bin size"), 0.5);
+	QCommandLineOption histogram_bin_size = addOption("histogram-bin-size",
+			tr("Histogram bin size"), 0.5);
 
 	// process output -->
 
