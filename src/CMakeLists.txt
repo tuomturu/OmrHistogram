@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.11)
 
-set(PROJECT_NAME OkrHistogram)
+set(PROJECT_NAME OmrHistogram)
 project(${PROJECT_NAME})
 
 include(${PROJECT_SOURCE_DIR}/../common.cmake)
