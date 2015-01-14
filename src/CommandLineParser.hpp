@@ -13,6 +13,9 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 
+/**
+ * Reads command line parameters
+ */
 class CommandLineParser: public QObject, public CommandLineParserInterface
 {
 	Q_OBJECT
@@ -20,6 +23,7 @@ class CommandLineParser: public QObject, public CommandLineParserInterface
 public:
 	CommandLineParser(QCoreApplication & app);
 
+	// implemented interface
 	QString getStimulusPath() const;
 	QString getSignalPath() const;
 	double getStimulusSamplingRate() const;
