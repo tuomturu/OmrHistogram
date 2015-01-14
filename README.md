@@ -5,15 +5,17 @@ According to those generates a histogram of speed differences and the ratio of s
 
 # Building
 
+1. create a debug folder to the root level
+
 ## eclipse
 1. project contains *cmake_debug* target that should run cmake
-1. make command: "make -C ${ProjDirPath}/debug VERBOSE=1"
+1. make command:
+    * make -C ${ProjDirPath}/debug VERBOSE=1
 
 ## command line
-1. create a debug folder to the root level
 1. from root level
     * cmake -E chdir debug cmake -G "Eclipse CDT4 - Unix Makefiles" ../src -DCMAKE_BUILD_TYPE=Debug
-1. run make in debug folder
+1. run make at the same level
     * make -C debug VERBOSE=1
 
 # Running
